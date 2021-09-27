@@ -1,0 +1,164 @@
+#define BLYNK_PRINT Serial
+#include <ESP8266WiFi.h>
+#include <BlynkSimpleEsp8266.h>
+#include <Servo.h> 
+#include <Adafruit_NeoPixel.h>
+
+
+#define servo1 D5// light
+#define servo2 D4// airconditioner
+
+//mood light
+#define NUMPIXELS 120  
+#define mood D6
+
+//DC motor
+#define motorPin1 D1
+#define motorPin2 D2
+
+//LED strap
+#define delayval 5//LED strip turning on seconds
+Adafruit_NeoPixel pixels = Adafruit_NeoPixel(NUMPIXELS, mood, NEO_GRB + NEO_KHZ800);
+Servo servo; 
+
+char auth[] = "hwbKYBrXwrAKj_SnbpDuu39zURsALB_N";
+//home
+//char ssid[] = "RYU"; char pass[] = "r100106685!";
+char ssid[] = "SK_WiFiGIGABC5C";
+char pass[] = "1910000182";
+
+BlynkTimer timer;
+
+void motorSpeed(byte prm1, byte prm2)
+{
+ digitalWrite(motorPin1,prm1);
+ digitalWrite(motorPin2,prm2);
+ delay(5);
+}
+
+void setup()
+{
+  //sets the DC motors pins as outputs
+  pinMode(motorPin1, OUTPUT);
+  pinMode(motorPin2, OUTPUT);
+
+  // sets mood light pins as outputs
+  pinMode(mood, OUTPUT);
+
+  //sets light,air conditioner servo moter pins outputs
+  servo.attach(servo1);
+  servo.attach(servo2); 
+
+  //LED strap
+  pixels.begin();
+
+  //serial
+  Serial.begin(9600);
+  delay(10);
+  //wifi connect
+  Serial.print("Connecting to ");
+  Serial.println(ssid);
+  WiFi.begin(ssid, pass);
+  int wifi_ctr = 0;
+  
+  while (WiFi.status() != WL_CONNECTED) 
+    {
+      delay(500);
+      Serial.println(".");
+    }
+  
+  Serial.println("WiFi connected");  
+  Blynk.begin(auth, ssid, pass);
+}
+
+
+int R;
+int G;
+int B; 
+BLYNK_WRITE(V0)// change the color of the mood light 
+{
+ R = param[0].asInt();
+ G = param[1].asInt();
+ B = param[2].asInt();
+}
+
+BLYNK_WRITE (V1)// MOOD_LED strap
+{
+ int pinValue = param.asInt (); // V2에서 들어오는 값을 변수에 할당
+    if (pinValue == 1) 
+     {for(int i=0;i<NUMPIXELS;i++)  
+      {pixels.setPixelColor(i, pixels.Color(G,B,R));//GBR 
+       pixels.show();delay(500);}
+     }
+
+else 
+  {for(int i=0;i<NUMPIXELS;i++)
+      {pixels.setPixelColor(i, pixels.Color(0,0,0)); 
+      pixels.show(); 
+      delay(delayval);}
+  }
+}
+
+BLYNK_WRITE (V2)// LIGHT
+{
+   int pinValue = param.asInt(); // V1에서 들어오는 값을 변수에 할당
+   if(pinValue == 1) 
+     { servo.attach(servo1);
+       servo.write(90);
+       Serial.println("V1 on");//확인용    
+       delay(500);        
+       servo.detach();}
+   else 
+     {servo.attach(servo1);
+      servo.write(10);    
+      delay(500);        
+      servo.detach();}    
+}
+
+BLYNK_WRITE (V3)// Airconditioner
+{
+   int pinValue = param.asInt(); // V1에서 들어오는 값을 변수에 할당
+   if(pinValue == 1) 
+     {servo.attach(servo2);
+       servo.write(90);    
+       delay(500);        
+       servo.detach();}
+   else 
+     {servo.attach(servo2);
+      servo.write(10);    
+      delay(500);        
+      servo.detach();}    
+}
+
+
+BLYNK_WRITE(V4) //dc motor_by joy stick
+{ int x = param[0].asInt();
+ int y = param[1].asInt();
+// x =  -10..-2 -1 0 1 2 ..10   
+// Y =  -10..-2 -1 0 1 2 ..10
+if ((x==0) && (y==0)) // stop
+{motorSpeed(LOW,LOW); }
+
+else if (((x>=-3) && (x<=3)) && (y>0)) // forward 
+{motorSpeed(HIGH,LOW); 
+Serial.println("forward");}
+
+else if (((x>=-3) && (x<=3)) && (y<0)) // backward
+{motorSpeed(LOW,HIGH); 
+Serial.println("backward"); }
+}
+
+BLYNK_WRITE(V5)
+{
+int pinValue = param.asInt(); // V1에서 들어오는 값을 변수에 할당
+   if(pinValue == 1) //night 01~08
+     {
+      Blynk.virtualWrite(V1,0);
+      Blynk.virtualWrite(V2,0);
+      }
+   else//day time 
+     {Blynk.virtualWrite(V1,1);
+      Blynk.virtualWrite(V2,1);}     
+}
+
+void loop(){Blynk.run();}
