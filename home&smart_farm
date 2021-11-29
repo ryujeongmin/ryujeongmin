@@ -1,0 +1,65 @@
+
+#include <Adafruit_NeoPixel.h>              // 네오픽셀 라이브러리를 불러옵니다.
+#define INPUT_PIN 12                             // 디지털핀 어디에 연결했는지 입력
+#define LEDNUM 80                                // 연결된 네오픽셀의 숫자입력
+Adafruit_NeoPixel strip = Adafruit_NeoPixel(LEDNUM, INPUT_PIN, NEO_GRB + NEO_KHZ800);
+
+#include <DHT.h>
+#include <LiquidCrystal_I2C.h>
+
+#define temp_mois A0
+
+DHT dht(temp_mois, DHT11);
+
+LiquidCrystal_I2C lcd(0x27, 16, 2);
+ 
+void setup(){
+     dht.begin();
+     lcd.begin();
+     lcd.backlight();
+     
+  strip.begin();
+  
+}
+ 
+void loop(){
+  for(int i=0; i<LEDNUM;i++)
+    {
+      strip.setPixelColor(i, 0, 255, 0);  // (A,R,G,B) A번째 LED를 RGB (0~255) 만큼의 밝기로 켭니다.
+    }       
+      strip.show();
+      delay(300);
+  int h = dht.readHumidity();
+  int t = dht.readTemperature();
+  
+  lcd.setCursor(0,0);
+  lcd.print("humidity : "); 
+  lcd.print(h);
+  lcd.setCursor(0,1);
+  lcd.print("temperature : "); 
+  lcd.print(t);
+  delay(300);
+  lcd.clear();
+ 
+   
+    if(h>26) 
+  {
+    for(int i=0; i<LEDNUM;i++)
+    {
+      strip.setPixelColor(i, 255, 0, 0);  // (A,R,G,B) A번째 LED를 RGB (0~255) 만큼의 밝기로 켭니다.
+    }       
+      strip.show();  
+      delay(500); 
+   
+  }
+  
+  else 
+  {
+  for(int i=0; i<LEDNUM;i++)
+    {
+      strip.setPixelColor(i, 0, 255, 0);  // (A,R,G,B) A번째 LED를 RGB (0~255) 만큼의 밝기로 켭니다.
+    }       
+      strip.show();  
+      delay(500);
+  }
+}
