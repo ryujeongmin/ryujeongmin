@@ -53,6 +53,17 @@ void loop(){
    
   }
   
+   if(h>3) 
+  {
+    for(int i=0; i<LEDNUM;i++)
+    {
+      strip.setPixelColor(i, 0, 0, 255);  // (A,R,G,B) A번째 LED를 RGB (0~255) 만큼의 밝기로 켭니다.
+    }       
+      strip.show();  
+      delay(500); 
+   
+  }
+  
   else 
   {
   for(int i=0; i<LEDNUM;i++)
