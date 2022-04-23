@@ -1,0 +1,107 @@
+#include<Servo.h>
+Servo servo_r;
+Servo servo_l;
+Servo servo_m;
+Servo SERVO1;
+
+int  servo_R = 3;
+int  servo_L=5;
+int  servo_M=9;
+int  SERVO11=6;
+
+
+int trigPin =A0;
+int echoPin =A1;
+
+
+
+void setup() {
+  pinMode(trigPin, OUTPUT); // Sets the trigPin as an OUTPUT
+  pinMode(echoPin, INPUT); // Sets the echoPin as an INPUT
+  Serial.begin(9600);   
+  servo_r.attach(servo_R);
+  servo_l.attach(servo_L);
+  servo_m.attach(servo_M);
+  SERVO1.attach(SERVO11);
+  start_position;
+}
+
+void loop() {
+
+  int distance = ultraSonic();
+  
+  if (distance<=5)
+      {setting();
+      delay(500);}
+      
+  else if (distance<30)
+      {next_page();
+      delay(500);} 
+  else 
+   {start_position();
+   delay(500);
+   }
+
+  delay (500);
+}
+
+  void start_position()
+{ 
+  servo_r.write(0);
+  SERVO1.write(90);
+  servo_l.write(180);
+  servo_m.write(0);
+  
+  Serial.println("start position");
+  delay(15);
+   }
+
+  void next_page()
+{
+  servo_r.write(90);
+  SERVO1.write(180);
+  delay(1000);
+  //
+  servo_l.write(90);
+  delay(50);
+  servo_m.write(160);
+  delay(500);
+  servo_l.write(180);
+  Serial.println("next_page");
+  delay(15);
+  }
+
+  
+  void setting()
+{
+  servo_r.write(180);
+  servo_l.write(0);
+  SERVO1.write(90);
+  servo_m.write(0);
+  Serial.println("setting");
+  delay(15);
+   }
+
+  int ultraSonic()
+  { 
+  long duration;
+  int  distance;
+    
+    // Clears the trigPin condition
+  digitalWrite(trigPin, LOW);
+  delayMicroseconds(2);
+  // Sets the trigPin HIGH (ACTIVE) for 10 microseconds
+  digitalWrite(trigPin, HIGH);
+  delayMicroseconds(10);
+  digitalWrite(trigPin, LOW);
+  // Reads the echoPin, returns the sound wave travel time in microseconds
+  duration = pulseIn(echoPin, HIGH);
+  // Calculating the distance
+  distance = duration * 0.034 / 2; // Speed of sound wave divided by 2 (go and back)
+  // Displays the distance on the Serial Monitor
+  Serial.print("Distance: ");
+  Serial.print(distance);
+  Serial.println(" cm");
+
+  return distance;
+  }
