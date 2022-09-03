@@ -1,0 +1,126 @@
+bool high = 0; //steppermotor direction
+bool low = 1;
+
+bool On = 1; //pump on off
+bool Off = 0;
+
+int A1A = A0;//pump direction
+int AlB = A1;
+
+int dir = 7; //big steppermotor
+int steps = 9;
+int stepsPerRevolution = 800;
+int revNum = 8;
+
+int dir2 = 5; //small steppermotor
+int steps2 = 4;
+int stepsPerRevolution2 = 2048;
+int revNum2 = 12;
+
+
+void pump(bool value);//pump motion
+void motor_s(bool DIR2);//left and right small stepper motor
+void STEPPER(bool DIR);//up down big stepper motor
+void initiate();//initiating bubble making 
+
+void setup() 
+{
+  Serial.begin(9600);
+  pinMode(steps, OUTPUT);
+  pinMode(dir, OUTPUT);
+
+  pinMode(steps2, OUTPUT);
+  pinMode(dir2, OUTPUT);
+
+  pinMode(A1A, OUTPUT);
+  pinMode(AlB, OUTPUT);
+}
+
+void loop()  
+{ Serial.println("value : ");
+  int value = Serial.parseInt();
+  
+  if(value == 1)
+  {
+   initiate(); 
+   delay(500);
+   value =0;
+  }
+}
+
+
+
+void initiate()
+  {
+    STEPPER(low);
+    delay(500);
+    STEPPER(high);
+    delay(500); //버블 액 찍고 올라옴
+
+    motor_s(high);
+    delay(500); // 버블 찍은 상태로 펠티어로 이동
+
+    STEPPER(low);
+    delay(500);//펠티어 위로 하강
+    
+    pump(On);
+    delay(500);//버블 만듦
+  
+    STEPPER(high);
+    delay(500);
+    motor_s(low);
+    delay(500);//원위치
+  }
+
+void STEPPER(bool DIR) //0=high, 1=low
+{
+for (int j=0; j<revNum; j++)
+    {
+     digitalWrite(dir, DIR);      //회전방향 출력
+      for(int i=0; i<stepsPerRevolution; i++)
+      {          
+        digitalWrite(steps, HIGH);
+        delayMicroseconds(300);          //딜레이값
+        digitalWrite(steps, LOW);
+        delayMicroseconds(300);
+      }   Serial.print("BIG motor step : "); Serial.println(j); 
+    }
+   if(DIR == low)
+    Serial.println("motor go low");
+   else if(DIR == high)
+    Serial.println("motor go high"); 
+}
+
+
+void motor_s(bool DIR2) //0=far, 1=closer
+{
+  for (int j=0; j<revNum2; j++)
+    {
+     digitalWrite(dir2, DIR2);      //회전방향 출력
+      for(int i=0; i<stepsPerRevolution; i++)
+      {          
+        digitalWrite(steps2, HIGH);
+        delayMicroseconds(300);          //딜레이값
+        digitalWrite(steps2, LOW);
+        delayMicroseconds(300); 
+      }   Serial.print("small motor step : "); Serial.println(j);   
+    }
+  if(DIR2 == 1)
+   {Serial.println("getting closer to the motor");}
+  else if(DIR2 ==0)
+   {Serial.println("go far from motor");} 
+}
+
+void pump(bool value)
+  {
+    digitalWrite(A1A, value);
+    digitalWrite(AlB, LOW);
+    delay(500);
+    digitalWrite(A1A, LOW);
+    digitalWrite(AlB, LOW);
+    if(value == 1)
+      Serial.println("pump on");
+    else
+      Serial.println("pump off");
+    
+  }
